@@ -9,14 +9,20 @@ from posts.models import Post, Group, Follow, Comment
 from .permissions import AuthorOrReadOnlyPermission
 from .serializers import (FollowSerializer, PostSerializer,
                           GroupSerializer, CommentSerializer)
-from .custommixins import CreateMixin
 
 
-class PostViewSet(CreateMixin, viewsets.ModelViewSet):
+
+class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [AuthorOrReadOnlyPermission]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = LimitOffsetPagination
+
+    def perform_create(self, serializer): 
+        serializer.save(author=self.request.user) 
+    
+    def get_post(self):
+        get_object_or_404(Post, pk=self.kwargs.get('post_id'))
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -29,14 +35,16 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (AuthorOrReadOnlyPermission,)
-
+    
+    def get_post(self, model):
+        obj = get_object_or_404(model, pk=self.kwargs.get('post_id'))
+        return obj
+        
     def perform_create(self, serializer):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        serializer.save(author=self.request.user, post=post)
+        serializer.save(author=self.request.user, post=self.get_post(Post))
 
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return post.comments
+        return self.get_post(Post).comments
 
 
 class FollowViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,

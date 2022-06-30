@@ -7,8 +7,8 @@ from api.views import PostViewSet, CommentViewSet, GroupViewSet, FollowViewSet
 v1_router = DefaultRouter()
 
 v1_router.register(r'^posts', PostViewSet)
-v1_router.register(r'^posts/(?P<post_id>\d+)/comments',
-                   CommentViewSet, basename="comment")
+v1_router.register(r'posts/(?P<post_id>\d+)/comments', CommentViewSet,
+                basename='comments')
 v1_router.register(r'^groups', GroupViewSet, basename="group")
 v1_router.register(r'^follow', FollowViewSet, basename="follow")
 
